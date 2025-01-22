@@ -10,6 +10,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     }
   },
+  base: '/mycitymove-platform/',
   build: {
     outDir: 'dist',
     sourcemap: true,
@@ -42,5 +43,4 @@ export default defineConfig({
     port: 3000,
     host: true,
   },
-  base: '/',
 });
