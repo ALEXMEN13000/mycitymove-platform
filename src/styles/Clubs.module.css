@@ -1,0 +1,74 @@
+.container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.title {
+    text-align: center;
+    color: #0A1172;
+    margin-bottom: 2rem;
+}
+
+.clubsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.clubCard {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.clubCard:hover {
+    transform: translateY(-5px);
+}
+
+.clubCard h2 {
+    color: #0A1172;
+    margin-bottom: 1rem;
+}
+
+.description {
+    color: #666;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.clubInfo {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.joinButton {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #0A1172;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.joinButton:hover {
+    background-color: #060b47;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .clubsGrid {
+        grid-template-columns: 1fr;
+    }
+} 
