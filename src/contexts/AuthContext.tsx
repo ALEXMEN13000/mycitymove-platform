@@ -1,127 +1,124 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User } from '@supabase/supabase-js'
-import { auth } from '@/services/auth'
 import { supabase } from '@/lib/supabase'
+import { toast } from 'react-hot-toast'
 
-type AuthContextType = {
+interface AuthContextType {
   user: User | null
-  userType: 'user' | 'club' | null
   isLoading: boolean
-  userProfile: any
-  clubProfile: any
-  signIn: (email: string, password: string, type?: 'user' | 'club') => Promise<void>
+  signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
-  resetPassword: (email: string) => Promise<void>
-  updatePassword: (newPassword: string) => Promise<void>
+  signUp: (email: string, password: string, fullName: string) => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
-  const [userType, setUserType] = useState<'user' | 'club' | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [userProfile, setUserProfile] = useState(null)
-  const [clubProfile, setClubProfile] = useState(null)
 
   useEffect(() => {
-    checkUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Vérifier la session actuelle
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (session?.user) {
-        checkUser()
-      } else {
-        setUserType(null)
-        setUserProfile(null)
-        setClubProfile(null)
-      }
+      setIsLoading(false)
     })
 
-    return () => {
-      subscription.unsubscribe()
-    }
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      setIsLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  async function checkUser() {
+  const signIn = async (email: string, password: string) => {
     try {
-      const session = await auth.getSession()
-      const currentUser = session?.user
-
-      if (currentUser) {
-        setUser(currentUser)
-        
-        // Vérifier d'abord dans la table users
-        const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', currentUser.id)
-          .single()
-
-        if (userData?.is_club) {
-          // Si c'est un club, récupérer les données du club
-          const { data: club } = await supabase
-            .from('clubs')
-            .select('*')
-            .eq('id', currentUser.id)
-            .single()
-
-          setUserType('club')
-          setClubProfile(club)
-          setUserProfile(null)
+      console.log('Tentative de connexion avec:', { email });
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('Erreur Supabase:', error);
+        if (error.message === 'Invalid login credentials') {
+          toast.error('Email ou mot de passe incorrect');
         } else {
-          // Si c'est un utilisateur normal
-          setUserType('user')
-          setUserProfile(userData)
-          setClubProfile(null)
+          toast.error(`Erreur de connexion: ${error.message}`);
         }
+        throw error;
+      }
+
+      if (data?.user) {
+        console.log('Connexion réussie:', data.user);
+        setUser(data.user);
+        toast.success('Connexion réussie');
       } else {
-        setUser(null)
-        setUserType(null)
-        setUserProfile(null)
-        setClubProfile(null)
+        console.error('Pas de données utilisateur reçues');
+        toast.error('Erreur lors de la connexion');
+        throw new Error('No user data received');
       }
     } catch (error) {
-      console.error('Erreur lors de la vérification de l\'utilisateur:', error)
-      setUser(null)
-      setUserType(null)
-      setUserProfile(null)
-      setClubProfile(null)
-    } finally {
-      setIsLoading(false)
+      console.error('Erreur complète:', error);
+      if (error instanceof Error) {
+        toast.error(`Erreur: ${error.message}`);
+      } else {
+        toast.error('Une erreur inattendue est survenue');
+      }
+      throw error;
     }
   }
 
-  async function signIn(email: string, password: string, type?: 'user' | 'club') {
-    const { user: authUser } = await auth.signIn(email, password, type)
-    if (authUser) {
-      await checkUser()
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      toast.success('Déconnexion réussie')
+    } catch (error) {
+      console.error('Erreur de déconnexion:', error)
+      toast.error('Erreur de déconnexion')
+      throw error
     }
   }
 
-  async function signOut() {
-    await auth.signOut()
-    setUser(null)
-    setUserType(null)
-    setUserProfile(null)
-    setClubProfile(null)
+  const signUp = async (email: string, password: string, fullName: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      })
+      if (error) throw error
+      toast.success('Inscription réussie')
+    } catch (error) {
+      console.error('Erreur d\'inscription:', error)
+      toast.error('Erreur d\'inscription')
+      throw error
+    }
   }
 
   const value = {
     user,
-    userType,
     isLoading,
-    userProfile,
-    clubProfile,
     signIn,
     signOut,
-    resetPassword: auth.resetPassword,
-    updatePassword: auth.updatePassword,
+    signUp,
   }
 
   return (
     <AuthContext.Provider value={value}>
-      {!isLoading && children}
+      {children}
     </AuthContext.Provider>
   )
 }

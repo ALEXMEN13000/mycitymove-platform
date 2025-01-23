@@ -7,6 +7,7 @@ import { ActivityFilters } from "@/components/ActivityFilters";
 import { useSearchParams } from "react-router-dom";
 import { toast, Toaster } from "react-hot-toast";
 import { activities } from "../data/activities";
+import { useFavorites } from "@/hooks/useFavorites";
 
 const marseille_districts = [
   "1er arrondissement",
@@ -83,6 +84,7 @@ const calculateRealDistance = async (origin: { lat: number; lng: number }, desti
 
 const Activities = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const [filteredActivities, setFilteredActivities] = useState(activities);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [filters, setFilters] = useState({
@@ -274,8 +276,10 @@ const Activities = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filteredActivities.map((activity) => (
                 <ActivityCard
-                  key={activity.id}
+                  key={activity.title}
                   {...activity}
+                  isFavorite={isFavorite(activity.id)}
+                  onFavoriteToggle={toggleFavorite}
                 />
               ))}
             </div>

@@ -27,17 +27,16 @@ export function LoginForm({ type = 'user', onSuccess, redirectTo = type === 'clu
     setIsLoading(true)
 
     try {
-      await signIn(email, password, type)
-      toast({
-        title: 'Connexion réussie',
-        description: 'Vous êtes maintenant connecté'
-      })
+      console.log('Tentative de connexion:', { email, type })
+      await signIn(email, password)
+      console.log('Connexion réussie, redirection vers:', redirectTo)
       onSuccess?.()
       navigate(redirectTo)
     } catch (error) {
+      console.error('Erreur de connexion:', error)
       toast({
         title: 'Erreur de connexion',
-        description: error instanceof Error ? error.message : 'Email ou mot de passe incorrect',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la connexion',
         variant: 'destructive'
       })
     } finally {

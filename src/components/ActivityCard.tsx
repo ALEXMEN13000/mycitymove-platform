@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { Star, Calendar, MapPin, Clock, User, BarChart, Building, Navigation } from "lucide-react";
+import { Star, Calendar, MapPin, Clock, User, BarChart, Navigation, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ActivityCardProps {
@@ -22,6 +22,8 @@ interface ActivityCardProps {
   startTime: string;
   endTime: string;
   distance?: number;
+  isFavorite?: boolean;
+  onFavoriteToggle?: (id: string) => void;
 }
 
 export const ActivityCard = ({ 
@@ -39,7 +41,9 @@ export const ActivityCard = ({
   ageRange,
   startTime,
   endTime,
-  distance
+  distance,
+  isFavorite,
+  onFavoriteToggle
 }: ActivityCardProps) => {
   const navigate = useNavigate();
 
@@ -93,11 +97,23 @@ export const ActivityCard = ({
             <Star className="h-3 w-3 fill-yellow-400 stroke-yellow-400" />
             {rating.toFixed(1)}
           </Badge>
+          <Badge 
+            className="bg-white text-black flex items-center gap-1 cursor-pointer hover:bg-gray-100"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (id && onFavoriteToggle) {
+                onFavoriteToggle(id);
+              }
+            }}
+          >
+            <Heart className={`h-3 w-3 ${isFavorite ? 'fill-red-500 stroke-red-500' : ''}`} />
+          </Badge>
           <Badge className="bg-accent">{category}</Badge>
         </div>
       </div>
       <CardHeader className="pb-2">
         <CardTitle className="text-xl line-clamp-1">{title}</CardTitle>
+        <p className="text-lg font-medium text-gray-600">{clubName}</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 gap-3 text-sm text-gray-600">
@@ -128,10 +144,6 @@ export const ActivityCard = ({
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-gray-500" />
             <span>{startTime} - {endTime}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Building className="h-5 w-5 text-gray-500" />
-            <span className="line-clamp-1">{clubName}</span>
           </div>
           {distance !== undefined && (
             <div className="flex items-center gap-2 text-blue-600">

@@ -1,8 +1,13 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Star, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
+import { activities } from "@/data/activities";
 
 // Base de données exemple (à remplacer par une vraie API)
 const reviewsData = {
@@ -258,14 +263,14 @@ const activitiesData = {
 
 function StarRating({ rating }: { rating: number }) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-1">
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          className={`h-5 w-5 ${
+          className={`h-4 w-4 ${
             star <= rating
               ? "fill-yellow-400 stroke-yellow-400"
-              : "fill-gray-200 stroke-gray-200"
+              : "stroke-gray-300"
           }`}
         />
       ))}
@@ -275,99 +280,139 @@ function StarRating({ rating }: { rating: number }) {
 
 export function ActivityReviews() {
   const { activityId } = useParams();
-  const [newReview, setNewReview] = useState('');
-  const [activity, setActivity] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [newReview, setNewReview] = useState("");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (activityId) {
-      setActivity(activitiesData[activityId as keyof typeof activitiesData]);
-      setReviews(reviewsData[activityId as keyof typeof reviewsData] || []);
-    }
-  }, [activityId]);
-
-  const handleSubmitReview = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implémenter la soumission de l'avis
-    console.log("Nouvel avis pour", activityId, ":", newReview);
-    setNewReview('');
-  };
+  // Trouver l'activité correspondante
+  const activity = activities.find(a => {
+    const urlId = a.title.toLowerCase()
+      .replace(/séance de /g, 'seance-de-')
+      .replace(/cours de /g, 'cours-de-')
+      .replace(/ /g, '-')
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    return urlId === activityId;
+  });
 
   if (!activity) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-2">Activité non trouvée</h1>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="container mx-auto px-4 pt-24 pb-12">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900">Activité non trouvée</h1>
+            <Link to="/activities">
+              <Button className="mt-4">Retour aux activités</Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
 
+  // Récupérer les avis pour cette activité
+  const reviews = reviewsData[activityId as keyof typeof reviewsData] || [];
+
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate('/login', { 
+      state: { 
+        returnTo: `/activity/${activityId}/reviews`,
+        message: "Connectez-vous pour déposer un avis" 
+      } 
+    });
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* En-tête */}
-      <div className="mb-8">
-        <Link
-          to={`/activity/${activityId}`}
-          className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span>Retour à l'activité</span>
-        </Link>
-        <h1 className="text-3xl font-bold mb-2">Avis - {activity.title}</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <StarRating rating={activity.rating} />
-            <span className="font-semibold">{activity.rating}</span>
-          </div>
-          <span className="text-gray-600">
-            {activity.reviewsCount} avis au total
-          </span>
-        </div>
-      </div>
-
-      {/* Formulaire pour ajouter un avis */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Donnez votre avis sur {activity.title}</h2>
-        <form onSubmit={handleSubmitReview}>
-          <Textarea
-            value={newReview}
-            onChange={(e) => setNewReview(e.target.value)}
-            placeholder="Partagez votre expérience..."
-            className="mb-4"
-          />
-          <Button type="submit">
-            Publier l'avis
-          </Button>
-        </form>
-      </div>
-
-      {/* Liste des avis */}
-      <div className="space-y-6">
-        {reviews.map((review) => (
-          <div key={review.id} className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-start gap-4">
-              <img
-                src={review.avatar}
-                alt={review.author}
-                className="w-12 h-12 rounded-full object-cover"
-              />
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">{review.author}</h3>
-                  <span className="text-gray-500 text-sm">
-                    {new Date(review.date).toLocaleDateString('fr-FR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </span>
-                </div>
-                <StarRating rating={review.rating} />
-                <p className="mt-3 text-gray-600">{review.content}</p>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main className="container mx-auto px-4 pt-24 pb-12">
+        <div className="max-w-3xl mx-auto">
+          {/* En-tête */}
+          <div className="mb-8">
+            <Link
+              to={`/activity/${activityId}`}
+              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Retour à l'activité
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{activity.title}</h1>
+            <div className="flex items-center gap-2">
+              <StarRating rating={activity.rating} />
+              <span className="text-lg font-medium">{activity.rating.toFixed(1)}</span>
             </div>
           </div>
-        ))}
-      </div>
+
+          {/* Liste des avis */}
+          <div className="space-y-6">
+            {reviews.map((review) => (
+              <Card key={review.id} className="p-6">
+                <div className="flex items-start gap-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={review.avatar} alt={review.author} />
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium">{review.author}</h3>
+                        <p className="text-sm text-gray-500">
+                          {new Date(review.date).toLocaleDateString('fr-FR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                      <StarRating rating={review.rating} />
+                    </div>
+                    <p className="text-gray-700">{review.content}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+
+            {reviews.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                Aucun avis pour le moment
+              </div>
+            )}
+          </div>
+
+          {/* Formulaire d'ajout d'avis */}
+          <Card className="mt-8 p-6">
+            <h2 className="text-xl font-semibold mb-4">Ajouter un avis</h2>
+            <form onSubmit={handleSubmitReview}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Note
+                  </label>
+                  <StarRating rating={5} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Votre avis
+                  </label>
+                  <Textarea
+                    value={newReview}
+                    onChange={(e) => setNewReview(e.target.value)}
+                    placeholder="Partagez votre expérience..."
+                    className="min-h-[100px]"
+                  />
+                </div>
+                <Button type="submit" className="w-full">
+                  Publier votre avis
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 } 

@@ -10,7 +10,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     }
   },
-  base: './',
+  base: '/mycitymove-explorer/',
   build: {
     outDir: 'dist',
     sourcemap: true,
@@ -36,11 +36,27 @@ export default defineConfig({
     assetsInlineLimit: 4096,
   },
   server: {
-    port: 3000,
-    host: true, // Permet l'accès depuis le réseau
+    host: true,
+    port: 5173,
+    strictPort: true,
+    cors: true,
+    proxy: {
+      '/api': {
+        target: 'https://dercfslfnrlqosuqofwa.supabase.co',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
   preview: {
-    port: 3000,
+    port: 5173,
+    strictPort: true,
     host: true,
+    cors: true
   },
+  define: {
+    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL),
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY)
+  }
 });

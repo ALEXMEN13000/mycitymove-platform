@@ -9,11 +9,10 @@ import { ActivityReviews } from '@/pages/ActivityReviews';
 import { Header } from '@/components/Header';
 import NotFound from '@/pages/NotFound';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ScrollToTop } from '@/components/ScrollToTop';
 
 import Index from "@/pages/Index";
 import Activities from "@/pages/Activities";
-import MemberDashboard from "@/pages/MemberDashboard";
-import ClubDashboard from "@/pages/ClubDashboard";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ClubLogin from "@/pages/ClubLogin";
@@ -21,11 +20,17 @@ import ClubRegister from "@/pages/ClubRegister";
 import ResetPassword from "@/pages/ResetPassword";
 import Favorites from "@/pages/Favorites";
 import Calendar from "@/pages/Calendar";
-import Explore from "@/pages/Explore";
-import ClubMembers from '@/pages/club/ClubMembers';
-import ClubActivities from '@/pages/club/ClubActivities';
-import ClubStats from '@/pages/club/ClubStats';
 import { PrivateRoute } from "@/components/auth/PrivateRoute";
+import ClubDashboard from "@/pages/club/ClubDashboard";
+import ClubActivities from "@/pages/club/Activities";
+import NewActivity from "@/pages/club/NewActivity";
+import ClubReviews from "@/pages/club/Reviews";
+import Profile from "@/pages/club/Profile";
+import Settings from "@/pages/club/Settings";
+import Legal from "@/pages/club/Legal";
+import Notifications from "@/pages/Notifications";
+import UserReviews from "@/pages/Reviews";
+import PersonalData from "@/pages/PersonalData";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +52,7 @@ function App() {
             <Toaster />
             <Sonner />
             <Router>
+              <ScrollToTop />
               <div className="min-h-screen bg-background">
                 <Header />
                 <Routes>
@@ -57,19 +63,69 @@ function App() {
                   <Route path="/activity/:activityId/reviews" element={<ActivityReviews />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/club/login" element={<ClubLogin />} />
                   <Route path="/club/register" element={<ClubRegister />} />
 
                   {/* Routes protégées */}
                   <Route path="/dashboard" element={
-                    <PrivateRoute>
-                      <MemberDashboard />
+                    <Navigate to="/reviews" replace />
+                  } />
+                  <Route path="/reviews" element={
+                    <PrivateRoute userType="user">
+                      <UserReviews />
                     </PrivateRoute>
                   } />
+                  <Route path="/notifications" element={
+                    <PrivateRoute userType="user">
+                      <Notifications />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/change-password" element={
+                    <PrivateRoute userType="user">
+                      <ResetPassword />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/personal-data" element={
+                    <PrivateRoute userType="user">
+                      <PersonalData />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+
+                  {/* Routes protégées pour les clubs */}
                   <Route path="/club/dashboard" element={
                     <PrivateRoute userType="club">
                       <ClubDashboard />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/club/activities" element={
+                    <PrivateRoute userType="club">
+                      <ClubActivities />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/club/activities/new" element={
+                    <PrivateRoute userType="club">
+                      <NewActivity />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/club/reviews" element={
+                    <PrivateRoute userType="club">
+                      <ClubReviews />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/club/profile" element={
+                    <PrivateRoute userType="club">
+                      <Profile />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/club/settings" element={
+                    <PrivateRoute userType="club">
+                      <Settings />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/club/legal" element={
+                    <PrivateRoute userType="club">
+                      <Legal />
                     </PrivateRoute>
                   } />
 
@@ -85,34 +141,13 @@ function App() {
                     </PrivateRoute>
                   } />
                   <Route path="/explore" element={
-                    <PrivateRoute>
-                      <Explore />
-                    </PrivateRoute>
+                    <Navigate to="/reviews" replace />
                   } />
-
-                  {/* Routes protégées pour les clubs */}
-                  <Route path="/club">
-                    <Route path="members" element={
-                      <PrivateRoute userType="club">
-                        <ClubMembers />
-                      </PrivateRoute>
-                    } />
-                    <Route path="activities" element={
-                      <PrivateRoute userType="club">
-                        <ClubActivities />
-                      </PrivateRoute>
-                    } />
-                    <Route path="stats" element={
-                      <PrivateRoute userType="club">
-                        <ClubStats />
-                      </PrivateRoute>
-                    } />
-                  </Route>
 
                   {/* Redirections */}
                   <Route path="/club-login" element={<Navigate to="/club/login" replace />} />
                   <Route path="/club-register" element={<Navigate to="/club/register" replace />} />
-                  
+
                   {/* Route 404 */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

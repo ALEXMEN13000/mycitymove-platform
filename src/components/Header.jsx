@@ -1,14 +1,17 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect, useRef } from 'react'
-import { Menu, X, ChevronDown, Facebook, Instagram, Linkedin } from 'lucide-react'
+import { Menu, X, ChevronDown, Facebook, Instagram, Linkedin, LogOut } from 'lucide-react'
 import { XLogo } from "./icons/XLogo";
 import { TikTokLogo } from "./icons/TikTokLogo";
+import { useAuth } from '@/contexts/AuthContext'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDashboardOpen, setIsDashboardOpen] = useState(false)
   const dropdownRef = useRef(null)
+  const { user, userType, clubProfile, signOut } = useAuth()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -35,6 +38,89 @@ export function Header() {
       document.body.style.overflow = 'unset'
     }
   }, [isMenuOpen])
+
+  const handleSignOut = async () => {
+    await signOut()
+    setIsDashboardOpen(false)
+    setIsMenuOpen(false)
+    navigate('/')
+  }
+
+  const renderDropdownContent = () => {
+    if (userType === 'club') {
+      return (
+        <div className="px-4 py-2">
+          <Link 
+            to="/club/profile" 
+            className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
+            onClick={() => setIsDashboardOpen(false)}
+          >
+            Accéder à votre espace
+          </Link>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center text-red-600 hover:text-red-700 hover:bg-gray-100 px-4 py-2 text-sm"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Se déconnecter
+          </button>
+        </div>
+      )
+    }
+
+    if (userType === 'user') {
+      return (
+        <div className="px-4 py-2">
+          <Link 
+            to="/dashboard" 
+            className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
+            onClick={() => setIsDashboardOpen(false)}
+          >
+            Mon espace personnel
+          </Link>
+        </div>
+      )
+    }
+
+    return (
+      <>
+        <div className="px-4 py-2">
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">Membre</h4>
+          <Link 
+            to="/login" 
+            className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
+            onClick={() => setIsDashboardOpen(false)}
+          >
+            Se connecter
+          </Link>
+          <Link 
+            to="/register" 
+            className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
+            onClick={() => setIsDashboardOpen(false)}
+          >
+            S'inscrire
+          </Link>
+        </div>
+        <div className="border-t border-gray-200 mt-2 pt-2 px-4">
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">Club</h4>
+          <Link 
+            to="/club/login" 
+            className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
+            onClick={() => setIsDashboardOpen(false)}
+          >
+            Se connecter
+          </Link>
+          <Link 
+            to="/club/register" 
+            className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
+            onClick={() => setIsDashboardOpen(false)}
+          >
+            S'inscrire
+          </Link>
+        </div>
+      </>
+    )
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#102A43] shadow-lg">
@@ -116,40 +202,7 @@ export function Header() {
             </button>
             {isDashboardOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                <div className="px-4 py-2">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Membre</h4>
-                  <Link 
-                    to="/login" 
-                    className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
-                    onClick={() => setIsDashboardOpen(false)}
-                  >
-                    Se connecter
-                  </Link>
-                  <Link 
-                    to="/register" 
-                    className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
-                    onClick={() => setIsDashboardOpen(false)}
-                  >
-                    S'inscrire
-                  </Link>
-                </div>
-                <div className="border-t border-gray-200 mt-2 pt-2 px-4">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Club</h4>
-                  <Link 
-                    to="/club/login" 
-                    className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
-                    onClick={() => setIsDashboardOpen(false)}
-                  >
-                    Se connecter
-                  </Link>
-                  <Link 
-                    to="/club/register" 
-                    className="block text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-4 py-2 text-sm"
-                    onClick={() => setIsDashboardOpen(false)}
-                  >
-                    S'inscrire
-                  </Link>
-                </div>
+                {renderDropdownContent()}
               </div>
             )}
           </div>
@@ -184,52 +237,82 @@ export function Header() {
                 onClick={() => setIsDashboardOpen(!isDashboardOpen)}
                 className="text-white hover:text-gray-200 text-lg w-full flex items-center justify-between"
               >
-                Dashboard
+                Espace personnel
                 <ChevronDown size={20} className={`transform transition-transform ${isDashboardOpen ? 'rotate-180' : ''}`} />
               </button>
               {isDashboardOpen && (
-                <div className="mt-3 ml-4 flex flex-col gap-3">
-                  <div>
-                    <h4 className="text-white text-sm font-semibold mb-2">Membre</h4>
+                <div className="mt-3 ml-4 flex flex-col gap-3 text-white">
+                  {userType === 'club' ? (
+                    <>
+                      <Link 
+                        to="/club/profile" 
+                        className="block hover:text-gray-200"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Accéder à votre espace
+                      </Link>
+                      <button
+                        onClick={handleSignOut}
+                        className="flex items-center text-red-400 hover:text-red-300"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Se déconnecter
+                      </button>
+                    </>
+                  ) : userType === 'user' ? (
                     <Link 
-                      to="/login" 
-                      className="block text-white hover:text-gray-200 ml-2 mb-1"
+                      to="/dashboard" 
+                      className="block hover:text-gray-200"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Se connecter
+                      Mon espace personnel
                     </Link>
-                  </div>
-                  <div className="mt-2">
-                    <h4 className="text-white text-sm font-semibold mb-2">Club</h4>
-                    <Link 
-                      to="/club/login" 
-                      className="block text-white hover:text-gray-200 ml-2 mb-1"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Se connecter
-                    </Link>
-                  </div>
+                  ) : (
+                    <>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2">Membre</h4>
+                        <Link 
+                          to="/login" 
+                          className="block hover:text-gray-200 ml-2 mb-1"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Se connecter
+                        </Link>
+                      </div>
+                      <div className="mt-2">
+                        <h4 className="text-sm font-semibold mb-2">Club</h4>
+                        <Link 
+                          to="/club/login" 
+                          className="block hover:text-gray-200 ml-2 mb-1"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Se connecter
+                        </Link>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Boutons d'action principaux */}
-            <div className="flex flex-col gap-4">
-              <Link 
-                to="/register" 
-                className="bg-[#4299E1] text-white hover:bg-[#3182CE] font-semibold py-2 px-4 rounded-lg text-center"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                S'inscrire
-              </Link>
-              <Link 
-                to="/club/register" 
-                className="bg-white text-[#102A43] hover:bg-gray-200 font-semibold py-2 px-4 rounded-lg text-center"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Inscription Club
-              </Link>
-            </div>
+            {!user && (
+              <div className="flex flex-col gap-4">
+                <Link 
+                  to="/register" 
+                  className="bg-[#4299E1] text-white hover:bg-[#3182CE] font-semibold py-2 px-4 rounded-lg text-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  S'inscrire
+                </Link>
+                <Link 
+                  to="/club/register" 
+                  className="bg-white text-[#102A43] hover:bg-gray-200 font-semibold py-2 px-4 rounded-lg text-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Inscription Club
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

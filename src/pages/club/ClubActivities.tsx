@@ -1,25 +1,29 @@
-import { useState } from 'react'
-import { DashboardLayout } from '@/components/layouts/DashboardLayout'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { 
+  BarChart3, 
+  Users, 
+  Calendar, 
+  Star, 
+  MessageSquare,
+  Settings,
+  Building2,
+  Shield,
+  Plus,
+  Search,
+  MoreHorizontal
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { MoreHorizontal, Search, Plus } from 'lucide-react'
+} from '@/components/ui/dropdown-menu';
 
-// Données de test (à remplacer par des données réelles)
+// Données de test
 const activities = [
   {
     id: 1,
@@ -34,7 +38,7 @@ const activities = [
   {
     id: 2,
     name: 'Yoga débutant',
-    category: 'Yoga',
+    category: 'Bien-être',
     participants: 12,
     maxParticipants: 12,
     nextSession: '2024-02-21T10:00:00',
@@ -51,48 +55,76 @@ const activities = [
     price: '15€/séance',
     status: 'active'
   }
-]
+];
 
-const categories = [
-  { value: 'all', label: 'Toutes les catégories' },
-  { value: 'sport', label: 'Sport' },
-  { value: 'fitness', label: 'Fitness' },
-  { value: 'yoga', label: 'Yoga' },
-  { value: 'dance', label: 'Danse' }
-]
+const ClubActivities = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const sidebarItems = [
+    { label: 'Tableau de bord', icon: BarChart3, link: '/club/dashboard' },
+    { label: 'Activités', icon: Calendar, active: true, link: '/club/activities' },
+    { label: 'Avis', icon: MessageSquare, link: '/club/reviews' },
+    { label: 'Statistiques', icon: BarChart3, link: '/club/statistics' },
+    { label: 'Profil Club', icon: Building2, link: '/club/profile' },
+    { label: 'Documents légaux', icon: Shield, link: '/club/legal' },
+    { label: 'Paramètres', icon: Settings, link: '/club/settings' },
+  ];
 
-export default function ClubActivities() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [category, setCategory] = useState('all')
-
-  // Filtrer les activités
-  const filteredActivities = activities.filter(activity => {
-    const matchesSearch = activity.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = category === 'all' || activity.category.toLowerCase() === category
-    return matchesSearch && matchesCategory
-  })
+  const filteredActivities = activities.filter(activity =>
+    activity.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
-        {/* En-tête */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Gestion des activités</h1>
-            <p className="text-gray-600">
-              {activities.length} activités au total
-            </p>
-          </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Créer une activité
-          </Button>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r">
+        {/* Logo et titre */}
+        <div className="flex items-center p-4 border-b">
+          <img 
+            src="https://via.placeholder.com/40"
+            alt="Club Logo"
+            className="w-10 h-10 rounded-full"
+          />
+          <h1 className="ml-3 text-xl font-semibold">Club Dashboard</h1>
         </div>
 
-        {/* Filtres */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="grid gap-4 md:grid-cols-2">
+        {/* Menu items */}
+        <nav className="p-4">
+          {sidebarItems.map((item, index) => (
+            <Link
+              key={index}
+              to={item.link}
+              className={`flex items-center px-4 py-3 mb-1 rounded-lg transition-colors ${
+                item.active 
+                  ? 'bg-blue-50 text-blue-600' 
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <item.icon className="w-5 h-5 mr-3" />
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-8">
+          {/* Header with title and button */}
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold">Gestion des Activités</h2>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+              <Plus className="w-5 h-5 mr-2" />
+              Ajouter une activité
+            </Button>
+          </div>
+
+          {/* Activities section */}
+          <div className="bg-white rounded-lg p-6">
+            <h3 className="text-xl font-bold mb-6">Mes Activités</h3>
+            
+            {/* Search bar */}
+            <div className="mb-6">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <Input
@@ -102,39 +134,17 @@ export default function ClubActivities() {
                   className="pl-10"
                 />
               </div>
-              <Select
-                value={category}
-                onValueChange={setCategory}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Filtrer par catégorie" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Liste des activités */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Liste des activités</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
+            {/* Activities list */}
+            <div className="space-y-4">
               {filteredActivities.map((activity) => (
                 <div
                   key={activity.id}
-                  className="flex items-center justify-between border-b pb-6 last:border-0 last:pb-0"
+                  className="flex items-center justify-between border-b pb-4 last:border-0"
                 >
                   <div>
-                    <h3 className="font-medium">{activity.name}</h3>
+                    <h4 className="font-medium">{activity.name}</h4>
                     <div className="mt-1 flex items-center gap-4 text-sm text-gray-600">
                       <span>{activity.category}</span>
                       <span>•</span>
@@ -157,15 +167,9 @@ export default function ClubActivities() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          Voir les participants
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          Dupliquer
-                        </DropdownMenuItem>
+                        <DropdownMenuItem>Modifier</DropdownMenuItem>
+                        <DropdownMenuItem>Voir les participants</DropdownMenuItem>
+                        <DropdownMenuItem>Dupliquer</DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600">
                           Supprimer
                         </DropdownMenuItem>
@@ -183,9 +187,11 @@ export default function ClubActivities() {
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
-    </DashboardLayout>
-  )
-} 
+    </div>
+  );
+};
+
+export default ClubActivities; 
